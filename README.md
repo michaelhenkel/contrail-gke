@@ -24,3 +24,9 @@ kubectl apply -f cassandra.yaml
 kubectl apply -f rabbitmq_rbac.yaml
 kubectl apply -f rabbitmq.yaml
 ```
+## some checks
+```
+kubectl exec -ti cassandra-0 -- nodetool status
+kubectl exec rabbitmq-0 rabbitmqctl cluster_status
+```
+
