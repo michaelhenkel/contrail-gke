@@ -102,3 +102,118 @@ spec:
             configMapKeyRef:
                 name: contrailconfig-cm
                 key: CONFIGDB_PORT
+      - name: svcmonitor
+        imagePullPolicy: Always
+        image: docker.io/opencontrailnightly/contrail-controller-config-svcmonitor:latest
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+        env:
+        - name : RABBITMQ_NODE_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODE_PORT
+        - name : CONFIG_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIG_NODES
+        - name : CONFIGDB_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_NODES
+        - name : ZOOKEEPER_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: ZOOKEEPER_NODES
+        - name : RABBITMQ_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODES
+        - name : CONFIGDB_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_PORT
+      - name: schema
+        imagePullPolicy: Always
+        image: docker.io/opencontrailnightly/contrail-controller-config-schema:latest
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+        env:
+        - name : RABBITMQ_NODE_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODE_PORT
+        - name : CONFIG_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIG_NODES
+        - name : CONFIGDB_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_NODES
+        - name : ZOOKEEPER_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: ZOOKEEPER_NODES
+        - name : RABBITMQ_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODES
+        - name : CONFIGDB_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_PORT
+      - name: devicemgr
+        imagePullPolicy: Always
+        image: docker.io/opencontrailnightly/contrail-controller-config-devicemgr:latest
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+        env:
+        - name : RABBITMQ_NODE_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODE_PORT
+        - name : CONFIG_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIG_NODES
+        - name : CONFIGDB_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_NODES
+        - name : ZOOKEEPER_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: ZOOKEEPER_NODES
+        - name : RABBITMQ_NODES
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: RABBITMQ_NODES
+        - name : CONFIGDB_PORT
+          valueFrom:
+            configMapKeyRef:
+                name: contrailconfig-cm
+                key: CONFIGDB_PORT
+
