@@ -2,38 +2,44 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: contrailanalytics-svc
+  name: contrailcontrol-svc
   labels:
-    app: contrailanalytics-svc
+    app: contrailcontrol-svc
 spec:
   ports:
-  - port: 8081
-    name: api
-  clusterIP: None
+  - port: 5269
+    targetPort: 5269
+    protocol: TCP
+    name: xmpp
+  - port: 179
+    targetPort: 179
+    protocol: TCP
+    name: bgp
+  type: NodePort
   selector:
-    app: contrailanalytics
+    app: contrailcontrol
 ---
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: contrailanalytics-pdb
+  name: contrailcontrol-pdb
 spec:
   selector:
     matchLabels:
-      app: contrailanalytics
+      app: contrailcontrol
   minAvailable: 2
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: contrailanalytics
+  name: contrailcontrol
 spec:
-  serviceName: contrailanalytics-svc
+  serviceName: contrailcontrol-svc
   replicas: 3
   template:
     metadata:
       labels:
-        app: contrailanalytics
+        app: contrailcontrol
     spec:
       affinity:
         podAntiAffinity:
@@ -43,19 +49,12 @@ spec:
                   - key: "app"
                     operator: In
                     values: 
-                    - contrailanalytics
+                    - contrailcontrol
               topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: contrail_dns
+        emptyDir: {}
       containers:
-      - name: redis
-        imagePullPolicy: Always
-        image: docker.io/redis:4.0.2
-        ports:
-        - containerPort: 6379
-          name: client
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "250m"
       - name: nodemgr
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-nodemgr:queens-master-118-centos
@@ -64,15 +63,15 @@ spec:
           requests:
             memory: "1Gi"
             cpu: "250m"
-        env:
-        - name: NODE_TYPE
-          value: "analytics"
         envFrom:
         - configMapRef:
             name: contrail-cm
-      - name: api
+        env:
+        - name: NODE_TYPE
+          value: "control"
+      - name: control
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-api:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-control-control:queens-master-118-centos
         resources:
           requests:
             memory: "2Gi"
@@ -83,35 +82,32 @@ spec:
         envFrom:
         - configMapRef:
             name: contrail-cm
-      - name: collector
+      - name: named
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-collector:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-control-named:queens-master-118-centos
+        privileged: true
         resources:
           requests:
             memory: "2Gi"
             cpu: "500m"
+        hostPID: true
         envFrom:
         - configMapRef:
             name: contrail-cm
-      - name: query-engine
+        volumeMounts:
+        - name: contrail_dns
+          mountPath: /etc/contrail/dns
+      - name: dns
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-query-engine:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        image: docker.io/michaelhenkel/contrail-controller-control-dns:queens-master-118-centos
         resources:
           requests:
             memory: "2Gi"
             cpu: "500m"
+        hostPID: true
         envFrom:
         - configMapRef:
             name: contrail-cm
-      - name: alarm-gen
-        imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-alarm-gen:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        envFrom:
-        - configMapRef:
-            name: contrail-cm
+        volumeMounts:
+        - name: contrail_dns
+          mountPath: /etc/contrail/dns

@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+  labels:
+    app: redis-svc
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  type: LoadBalancer
+  selector:
+    app: redis
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  minAvailable: 2
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  serviceName: redis-svc
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values: 
+                    - redis
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: redis
+        imagePullPolicy: Always
+        image: docker.io/redis:4.0.2
+        ports:
+        - containerPort: 6379
+          name: client
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "250m"
