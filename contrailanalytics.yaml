@@ -8,7 +8,33 @@ metadata:
 spec:
   ports:
   - port: 8081
+    targetPort: 8081
+    protocol: TCP
     name: api
+  - port: 8086
+    targetPort: 8086
+    protocol: TCP
+    name: collector
+  - port: 8089
+    targetPort: 8089
+    protocol: TCP
+    name: collector-introspect
+  - port: 8090
+    targetPort: 8090
+    protocol: TCP
+    name: api-introspect
+  - port: 8091
+    targetPort: 8091
+    protocol: TCP
+    name: query-engine
+  - port: 8181
+    targetPort: 8181
+    protocol: TCP
+    name: api-unknown
+  - port: 8104
+    targetPort: 8104
+    protocol: TCP
+    name: nodemgr
   clusterIP: None
   selector:
     app: contrailanalytics
@@ -45,6 +71,8 @@ spec:
                     values: 
                     - contrailanalytics
               topologyKey: "kubernetes.io/hostname"
+      imagePullSecrets:
+      - name: contrail-nightly
       containers:
       - name: redis
         imagePullPolicy: Always
@@ -52,27 +80,26 @@ spec:
         ports:
         - containerPort: 6379
           name: client
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "250m"
       - name: nodemgr
-        imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-nodemgr:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "250m"
-        env:
-        - name: NODE_TYPE
-          value: "analytics"
+        image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
+        imagePullPolicy: ""
+        ports:
+        - containerPort: 8104
+          name: introspect
         envFrom:
         - configMapRef:
             name: contrail-cm
+        env:
+        - name: NODE_TYPE
+          value: "analytics"
+        - name: DOCKER_HOST
+          value: "unix://mnt/docker.sock"
+        volumeMounts:
+        - mountPath: /mnt
+          name: docker-unix-socket
       - name: api
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-api:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-analytics-api:queens-5.0.2-dev
         resources:
           requests:
             memory: "2Gi"
@@ -80,23 +107,33 @@ spec:
         ports:
         - containerPort: 8081
           name: client
+        - containerPort: 8181
+          name: unknown
+        - containerPort: 8090
+          name: introspect
         envFrom:
         - configMapRef:
             name: contrail-cm
       - name: collector
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-collector:queens-master-118-centos
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
+        image: docker.io/michaelhenkel/contrail-analytics-collector:queens-5.0.2-dev
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        ports:
+        - containerPort: 8089
+          name: introspect
+        - containerPort: 8086
+          name: client
         envFrom:
         - configMapRef:
             name: contrail-cm
       - name: query-engine
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-query-engine:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        image: docker.io/michaelhenkel/contrail-analytics-query-engine:queens-5.0.2-dev
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        command: ["/bin/sh","-c","sleep 20 && /entrypoint.sh /usr/bin/contrail-query-engine --conf_file=/etc/contrail/contrail-query-engine.conf"]
+        ports:
+        - containerPort: 8091
+          name: introspect
         resources:
           requests:
             memory: "2Gi"
@@ -106,8 +143,7 @@ spec:
             name: contrail-cm
       - name: alarm-gen
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-analytics-alarm-gen:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        image: docker.io/michaelhenkel/contrail-analytics-alarm-gen:queens-5.0.2-dev
         resources:
           requests:
             memory: "2Gi"
@@ -115,3 +151,10 @@ spec:
         envFrom:
         - configMapRef:
             name: contrail-cm
+      volumes:
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run
+      - name: host-usr-bin
+        hostPath:
+          path: /usr/bin

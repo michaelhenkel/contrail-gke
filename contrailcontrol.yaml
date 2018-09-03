@@ -15,7 +15,7 @@ spec:
     targetPort: 179
     protocol: TCP
     name: bgp
-  type: NodePort
+  clusterIP: None
   selector:
     app: contrailcontrol
 ---
@@ -51,14 +51,12 @@ spec:
                     values: 
                     - contrailcontrol
               topologyKey: "kubernetes.io/hostname"
-      volumes:
-      - name: contrail_dns
-        emptyDir: {}
+      hostPID: true
+      #privileged: true
       containers:
       - name: nodemgr
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-nodemgr:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
         resources:
           requests:
             memory: "1Gi"
@@ -69,13 +67,15 @@ spec:
         env:
         - name: NODE_TYPE
           value: "control"
+        - name: DOCKER_HOST
+          value: "unix://mnt/docker.sock"
+        volumeMounts:
+        - mountPath: /mnt
+          name: docker-unix-socket
       - name: control
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-control:queens-master-118-centos
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
+        image: docker.io/michaelhenkel/contrail-controller-control-control:queens-5.0.2-dev
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         ports:
         - containerPort: 8081
           name: client
@@ -83,31 +83,30 @@ spec:
         - configMapRef:
             name: contrail-cm
       - name: named
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-named:queens-master-118-centos
-        privileged: true
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        hostPID: true
+        image: docker.io/michaelhenkel/contrail-controller-control-named:queens-5.0.2-dev
         envFrom:
         - configMapRef:
             name: contrail-cm
         volumeMounts:
-        - name: contrail_dns
+        - name: contrail-dns
           mountPath: /etc/contrail/dns
+        securityContext:
+          privileged: true
       - name: dns
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-dns:queens-master-118-centos
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        hostPID: true
+        image: docker.io/michaelhenkel/contrail-controller-control-dns:queens-5.0.2-dev
         envFrom:
         - configMapRef:
             name: contrail-cm
         volumeMounts:
-        - name: contrail_dns
+        - name: contrail-dns
           mountPath: /etc/contrail/dns
+      volumes:
+      - name: contrail-dns
+        emptyDir: {}
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run

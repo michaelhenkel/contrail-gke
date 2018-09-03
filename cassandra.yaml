@@ -76,6 +76,26 @@ spec:
         app: cassandra
     spec:
       containers:
+        - name: nodemgr
+          imagePullPolicy: Always
+          image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+          envFrom:
+          - configMapRef:
+              name: contrail-cm
+          env:
+          - name: NODE_TYPE
+            value: "database"
+          - name: DATABASE_NODEMGR__DEFAULTS__minimum_diskGB
+            value: "10"
+          - name: DOCKER_HOST
+            value: "unix://mnt/docker.sock"
+          volumeMounts:
+          - mountPath: /mnt
+            name: docker-unix-socket
         - name: cassandra
           image: cassandra:3
           imagePullPolicy: IfNotPresent
@@ -110,6 +130,10 @@ spec:
           volumeMounts:
             - name: cassandra-data
               mountPath: /var/lib/cassandra/data
+      volumes:
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run
   volumeClaimTemplates:
     - metadata:
         name: cassandra-data

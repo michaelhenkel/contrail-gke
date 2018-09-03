@@ -18,12 +18,12 @@ kubectl create rolebinding rabbitmq-rolebinding --clusterrole=admin --user=${GKE
 ```
 ## create db cluster
 ```
+kubectl apply -f contrail-cm.yaml
 kubectl apply -f zookeeper.yaml
-kubectl apply -f kafka.yaml
 kubectl apply -f cassandra.yaml
 kubectl apply -f rabbitmq_rbac.yaml
 kubectl apply -f rabbitmq.yaml
-kubectl apply -f contrail-cm.yaml
+kubectl apply -f kafka.yaml
 kubectl apply -f contrailconfig.yaml
 kubectl apply -f contrailanalytics.yaml
 kubectl apply -f contrailcontrol.yaml

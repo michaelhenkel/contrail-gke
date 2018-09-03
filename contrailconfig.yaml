@@ -8,6 +8,8 @@ metadata:
 spec:
   ports:
   - port: 8082
+    targetPort: 8082
+    protocol: TCP
     name: api
   clusterIP: None
   selector:
@@ -45,11 +47,12 @@ spec:
                     values: 
                     - contrailconfig
               topologyKey: "kubernetes.io/hostname"
+      imagePullSecrets:
+      - name: contrail-nightly
       containers:
       - name: nodemgr
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-nodemgr:queens-master-118-centos
-        command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
         resources:
           requests:
             memory: "1Gi"
@@ -60,9 +63,14 @@ spec:
         env:
         - name: NODE_TYPE
           value: "config"
+        - name: DOCKER_HOST
+          value: "unix://mnt/docker.sock"
+        volumeMounts:
+        - mountPath: /mnt
+          name: docker-unix-socket
       - name: api
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-api:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-config-api:queens-5.0.2-dev
         resources:
           requests:
             memory: "2Gi"
@@ -75,7 +83,7 @@ spec:
             name: contrail-cm
       - name: svcmonitor
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-svcmonitor:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-config-svcmonitor:queens-5.0.2-dev
         resources:
           requests:
             memory: "1Gi"
@@ -85,7 +93,7 @@ spec:
             name: contrail-cm
       - name: schema
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-schema:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-config-schema:queens-5.0.2-dev
         resources:
           requests:
             memory: "1Gi"
@@ -95,7 +103,7 @@ spec:
             name: contrail-cm
       - name: devicemgr
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-devicemgr:queens-master-118-centos
+        image: docker.io/michaelhenkel/contrail-controller-config-devicemgr:queens-5.0.2-dev
         resources:
           requests:
             memory: "1Gi"
@@ -103,3 +111,10 @@ spec:
         envFrom:
         - configMapRef:
             name: contrail-cm
+      volumes:
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run
+      - name: host-usr-bin
+        hostPath:
+          path: /usr/bin

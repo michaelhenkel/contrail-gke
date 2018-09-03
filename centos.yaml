@@ -10,3 +10,5 @@ spec:
   - name: centos
     image: centos
     command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+    securityContext:
+      privileged: true
