@@ -1,6 +1,38 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: contrail
+  name: rabbitmq
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: contrail
+  name: endpoint-reader
+rules:
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  namespace: contrail
+  name: endpoint-reader
+subjects:
+- kind: ServiceAccount
+  name: rabbitmq
+  namespace: contrail
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: endpoint-reader
+---
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: contrail
   name: rabbitmq
   labels:
     app: rabbitmq
@@ -17,6 +49,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: contrail
   name: rabbitmq-config
 data:
   enabled_plugins: |
@@ -43,6 +76,7 @@ data:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
+  namespace: contrail
   name: rabbitmq
 spec:
   serviceName: rabbitmq

@@ -2,6 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: contrail
   name: contrailconfig-svc
   labels:
     app: contrailconfig-svc
@@ -18,6 +19,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
+  namespace: contrail
   name: contrailconfig-pdb
 spec:
   selector:
@@ -28,6 +30,7 @@ spec:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
+  namespace: contrail
   name: contrailconfig
 spec:
   serviceName: contrailconfig-svc
@@ -53,6 +56,7 @@ spec:
       - name: nodemgr
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         resources:
           requests:
             memory: "1Gi"
@@ -69,6 +73,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: api
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-controller-config-api:queens-5.0.2-dev
         resources:
@@ -82,6 +87,7 @@ spec:
         - configMapRef:
             name: contrail-cm
       - name: svcmonitor
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-controller-config-svcmonitor:queens-5.0.2-dev
         resources:
@@ -92,6 +98,7 @@ spec:
         - configMapRef:
             name: contrail-cm
       - name: schema
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-controller-config-schema:queens-5.0.2-dev
         resources:
@@ -102,6 +109,7 @@ spec:
         - configMapRef:
             name: contrail-cm
       - name: devicemgr
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-controller-config-devicemgr:queens-5.0.2-dev
         resources:

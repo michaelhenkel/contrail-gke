@@ -2,6 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: contrail
   name: kafka-svc
   labels:
     app: kafka
@@ -16,6 +17,7 @@ spec:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
+  namespace: contrail
   name: kafka
 spec:
   serviceName: kafka-svc
@@ -177,6 +179,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
+  namespace: contrail
   name: kafka-pdb
 spec:
   selector:

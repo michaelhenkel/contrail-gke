@@ -2,13 +2,16 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: contrail
   name: contrail-cm
 data:
         #ANALYTICS_SERVERS: "contrailanalytics-svc:8081"
         #COLLECTOR_SERVERS: "contrailanalytics-svc:8086"
+  CASSANDRA_SEEDS: "cassandra-0.cassandra"
   ANALYTICS_NODES: "contrailanalytics-0.contrailanalytics-svc,contrailanalytics-1.contrailanalytics-svc,contrailanalytics-2.contrailanalytics-svc"
   #CONFIG_SERVERS: "contrailconfig-svc:8082"
   CONFIG_NODES: "contrailconfig-0.contrailconfig-svc,contrailconfig-1.contrailconfig-svc,contrailconfig-2.contrailconfig-svc"
+  CONTROL_NODES: "contrailcontrol-0.contrailcontrol-svc,contrailcontrol-1.contrailcontrol-svc,contrailcontrol-2.contrailcontrol-svc"
   ANALYTICSDB_CQL_PORT: "9042"
   ANALYTICSDB_NODES: "cassandra-0.cassandra,cassandra-1.cassandra,cassandra-2.cassandra"
   ANALYTICSDB_PORT: "9160"
