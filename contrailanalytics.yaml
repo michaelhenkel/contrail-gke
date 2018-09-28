@@ -101,6 +101,7 @@ spec:
         - mountPath: /mnt
           name: docker-unix-socket
       - name: api
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-analytics-api:queens-5.0.2-dev
         resources:
@@ -145,6 +146,8 @@ spec:
         - configMapRef:
             name: contrail-cm
       - name: alarm-gen
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        command: ["/bin/sh","-c","sleep 80 && /entrypoint.sh /usr/bin/contrail-alarm-gen --conf_file=/etc/contrail/contrail-alarm-gen.conf"]
         imagePullPolicy: Always
         image: docker.io/michaelhenkel/contrail-analytics-alarm-gen:queens-5.0.2-dev
         resources:

@@ -1,8 +1,8 @@
 #!/bin/bash
 OPTIND=1
 
-CLUSTER_VERSION="1.10.7-gke.2"
-ZONE="europe-west1-b"
+#CLUSTER_VERSION="1.10.7-gke.2"
+#ZONE="europe-west1-b"
 MACHINE_TYPE="n1-standard-16"
 USER=""
 CLUSTER_NAME="contrail-cluster"
@@ -49,15 +49,20 @@ if [[ -n ${missing} ]]; then
   exit 1
 fi
 
+if [[ -n ${ZONE} ]]; then
+  zone='--zone ${ZONE}'
+fi
+
+if [[ -n ${CLUSTER_VERSION} ]]; then
+  cluster_version='--cluster-version ${CLUSTER_VERSION}'
+fi
+
 function createCluster(){
-    cluster_exists=`gcloud container clusters list --filter NAME:${CLUSTER_NAME} --zone ${ZONE}| wc -l`
+    cluster_exists=`gcloud container clusters list --filter NAME:${CLUSTER_NAME} ${zone}| wc -l`
     if [[ ${cluster_exists} -ne 0 ]]; then
         echo cluster already exists
     else
-        gcloud container clusters create contrail-cluster \
-	--machine-type ${MACHINE_TYPE} \
-	--zone ${ZONE} \
-	--cluster-version ${CLUSTER_VERSION}
+        gcloud container clusters create contrail-cluster --machine-type ${MACHINE_TYPE} ${zone} ${cluster_version}
     fi
 }
 
@@ -95,20 +100,27 @@ function waitForPods(){
 function createPods(){
     kubectl apply -f zookeeper.yaml
     kubectl apply -f cassandra.yaml
-    #kubectl apply -f rabbitmq_rbac.yaml
     kubectl apply -f rabbitmq.yaml
     waitForPods zk
     waitForPods rabbitmq
     waitForPods cassandra
     kubectl apply -f kafka.yaml
     kubectl apply -f contrailconfig.yaml
+    kubectl apply -f contrailwebui.yaml
     waitForPods kafka
     waitForPods contrailconfig
     kubectl apply -f contrailanalytics.yaml
     waitForPods contrailanalytics
     kubectl apply -f contrailcontrol.yaml
-    kubectl apply -f contrailwebui.yaml
     waitForPods contrailcontrol
+}
+function getExternalIP(){
+  externalIP=`kubectl -n contrail get service contrailwebui-svc -o=jsonpath='{.status.loadBalancer.ingress[*].ip}'`
+  while [[ -z ${externalIP} ]]; do
+    sleep 2
+    externalIP=`kubectl -n contrail get service contrailwebui-svc -o=jsonpath='{.status.loadBalancer.ingress[*].ip}'`
+  done
+  echo ${externalIP}
 }
 
 if [[ ${ACTION} == 'create' ]]; then
@@ -116,18 +128,20 @@ if [[ ${ACTION} == 'create' ]]; then
     createNamespace
     createRoleBindings
     kubectl apply -f contrail-cm.yaml
-#    createPods
+    createPods
+    externalIP=`getExternalIP`
+    echo "access webui at https://${externalIP}:8143"
 fi
 if [[ ${ACTION} == 'delete' ]]; then
     kubectl delete pods --all --now=true -n ${NAMESPACE}
-    kubectl delete pvc --all -n ${NAMESPACE}
-    kubectl delete pv --all -n ${NAMESPACE}
-    kubectl delete statefulset --all -n ${NAMESPACE}
+    kubectl delete statefulset --all --grace-period=1 --force=true -n ${NAMESPACE}
     kubectl delete poddisruptionbudget --all -n ${NAMESPACE}
     kubectl delete service --all -n ${NAMESPACE}
     kubectl delete configmap --all -n ${NAMESPACE}
     kubectl delete rolebinding --all -n ${NAMESPACE}
     kubectl delete role --all -n ${NAMESPACE}
     kubectl delete serviceaccount --all -n ${NAMESPACE}
+    kubectl delete pvc --all -n ${NAMESPACE}
+    kubectl delete pv --all -n ${NAMESPACE}
     kubectl delete namespace ${NAMESPACE}
 fi
