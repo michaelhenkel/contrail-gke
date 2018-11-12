@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Values.global.namespace }}
+  name: contrail-cm
+data:
+  CASSANDRA_SEEDS: "cassandra-0.cassandra.{{ .Values.global.namespace}}.svc.cluster.local"
+  ANALYTICS_NODES: "{{- list .Values.global.namespace "contrailanalytics" "contrailanalytics-svc" .Values.global.nodeCount | include "nodes" }}"
+  CONFIG_NODES: "{{- list .Values.global.namespace "contrailconfig" "contrailconfig-svc" .Values.global.nodeCount | include "nodes" }}"
+  CONTROL_NODES: "{{- list .Values.global.namespace "contrailcontrol" "contrailcontrol-svc" .Values.global.nodeCount | include "nodes" }}"
+  ANALYTICSDB_CQL_PORT: "9042"
+  ANALYTICSDB_NODES: "{{- list .Values.global.namespace "cassandra" "cassandra" .Values.global.nodeCount | include "nodes" }}"
+  ANALYTICSDB_PORT: "9160"
+  CASSANDRA_JMX_LOCAL_PORT: "7200"
+  CLOUD_ORCHESTRATOR: "kubernetes"
+  CONFIGDB_NODES: "{{- list .Values.global.namespace "cassandra" "cassandra" .Values.global.nodeCount | include "nodes" }}"
+  CONFIGDB_PORT: "9160"
+  CONFIGDB_CQL_PORT: "9042"
+  IPFABRIC_SERVICE_HOST: "contrailconfig-0.contrailconfig-svc.{{ .Values.global.namespace}}.svc.cluster.local"
+  RABBITMQ_NODE_PORT: "5672"
+  RABBITMQ_NODES: "{{- list .Values.global.namespace "rabbitmq" "rabbitmq" .Values.global.nodeCount | include "nodes" }}"
+  #ZOOKEEPER_ANALYTICS_NODES: "zk-0.zk-svc,zk-1.zk-svc,zk-2.zk-svc"
+  ZOOKEEPER_ANALYTICS_NODES: "{{- list .Values.global.namespace "zk" "zk-svc" .Values.global.nodeCount | include "nodes" }}"
+  ZOOKEEPER_ANALYTICS_PORT: "2181"
+  ZOOKEEPER_NODES: "{{- list .Values.global.namespace "zk" "zk-svc" .Values.global.nodeCount | include "nodes" }}"
+  KAFKA_NODES: "{{- list .Values.global.namespace "kafka" "kafka-svc" .Values.global.nodeCount | include "nodes" }}"
+  CONTRAIL_CONTAINER_REGISTRY: "{{ .Values.global.containerRegistry }}"
+  CONTRAIL_CONTAINER_TAG: "{{ .Values.global.containerTag }}"
+  KUBERNETES_API_SERVER: kubernetes.default.svc
+  KUBERNETES_CLUSTER_NAME: contrail-cluster
+  CLOUD_ORCHESTRATOR: kubernetes
+  KUBERNETES_CLUSTER_PROJECT: gke

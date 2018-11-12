@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailcontrol-svc
   labels:
     app: contrailcontrol-svc
@@ -23,7 +23,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailcontrol-pdb
 spec:
   selector:
@@ -34,11 +34,11 @@ spec:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailcontrol
 spec:
   serviceName: contrailcontrol-svc
-  replicas: 3
+  replicas: {{ .Values.global.nodeCount }}
   template:
     metadata:
       labels:
@@ -59,7 +59,7 @@ spec:
       containers:
       - name: nodemgr
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-nodemgr:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "1Gi"
@@ -77,7 +77,7 @@ spec:
           name: docker-unix-socket
       - name: control
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-control:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-control-control:{{ .Values.global.containerTag }}
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         ports:
         - containerPort: 8081
@@ -88,7 +88,7 @@ spec:
       - name: named
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-named:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-control-named:{{ .Values.global.containerTag }}
         envFrom:
         - configMapRef:
             name: contrail-cm
@@ -100,7 +100,7 @@ spec:
       - name: dns
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-control-dns:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-control-dns:{{ .Values.global.containerTag }}
         envFrom:
         - configMapRef:
             name: contrail-cm

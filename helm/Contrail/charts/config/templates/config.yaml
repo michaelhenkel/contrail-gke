@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailconfig-svc
   labels:
     app: contrailconfig-svc
@@ -19,7 +19,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailconfig-pdb
 spec:
   selector:
@@ -30,11 +30,11 @@ spec:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailconfig
 spec:
   serviceName: contrailconfig-svc
-  replicas: 3
+  replicas: {{ .Values.global.nodeCount }}
   template:
     metadata:
       labels:
@@ -55,7 +55,7 @@ spec:
       containers:
       - name: nodemgr
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-nodemgr:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         resources:
           requests:
@@ -75,7 +75,7 @@ spec:
       - name: api
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-api:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-config-api:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "2Gi"
@@ -89,7 +89,7 @@ spec:
       - name: svcmonitor
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-svcmonitor:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-config-svcmonitor:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "1Gi"
@@ -100,7 +100,7 @@ spec:
       - name: schema
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-schema:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-config-schema:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "1Gi"
@@ -111,7 +111,7 @@ spec:
       - name: devicemgr
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-config-devicemgr:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-config-devicemgr:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "1Gi"

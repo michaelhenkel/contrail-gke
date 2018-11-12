@@ -1,7 +1,8 @@
 #!/bin/bash
 OPTIND=1
 
-#CLUSTER_VERSION="1.10.7-gke.2"
+#CLUSTER_VERSION="1.11.2-gke.9"
+CLUSTER_VERSION="latest"
 #ZONE="europe-west1-b"
 MACHINE_TYPE="n1-standard-16"
 USER=""
@@ -54,7 +55,7 @@ if [[ -n ${ZONE} ]]; then
 fi
 
 if [[ -n ${CLUSTER_VERSION} ]]; then
-  cluster_version='--cluster-version ${CLUSTER_VERSION}'
+  cluster_version="--cluster-version ${CLUSTER_VERSION}"
 fi
 
 function createCluster(){
@@ -104,13 +105,13 @@ function createPods(){
     waitForPods zk
     waitForPods rabbitmq
     waitForPods cassandra
-    kubectl apply -f kafka.yaml
+    #kubectl apply -f kafka.yaml
     kubectl apply -f contrailconfig.yaml
     kubectl apply -f contrailwebui.yaml
-    waitForPods kafka
+    #waitForPods kafka
     waitForPods contrailconfig
-    kubectl apply -f contrailanalytics.yaml
-    waitForPods contrailanalytics
+    #kubectl apply -f contrailanalytics.yaml
+    #waitForPods contrailanalytics
     kubectl apply -f contrailcontrol.yaml
     waitForPods contrailcontrol
 }
@@ -125,12 +126,12 @@ function getExternalIP(){
 
 if [[ ${ACTION} == 'create' ]]; then
     createCluster
-    createNamespace
-    createRoleBindings
-    kubectl apply -f contrail-cm.yaml
-    createPods
-    externalIP=`getExternalIP`
-    echo "access webui at https://${externalIP}:8143"
+#    createNamespace
+#    createRoleBindings
+#    kubectl apply -f contrail-cm.yaml
+#    createPods
+#    externalIP=`getExternalIP`
+#    echo "access webui at https://${externalIP}:8143"
 fi
 if [[ ${ACTION} == 'delete' ]]; then
     kubectl delete pods --all --now=true -n ${NAMESPACE}

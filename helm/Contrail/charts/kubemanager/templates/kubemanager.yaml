@@ -1,0 +1,78 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: contrail-kubemanager
+  namespace: {{ .Values.global.namespace }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: contrail-kubemanager
+  namespace: {{ .Values.global.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: contrail-kubemanager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: contrail-kubemanager
+subjects:
+- kind: ServiceAccount
+  name: contrail-kubemanager
+  namespace: {{ .Values.global.namespace }}
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  namespace: {{ .Values.global.namespace }}
+  name: kubemanager-pdb
+spec:
+  selector:
+    matchLabels:
+      app: kubemanager
+  minAvailable: 2
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  namespace: {{ .Values.global.namespace }}
+  name: kubemanager
+spec:
+  serviceName: kubemanager-svc
+  replicas: {{ .Values.global.nodeCount }}
+  template:
+    metadata:
+      labels:
+        app: kubemanager
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values: 
+                    - kubemanager
+              topologyKey: "kubernetes.io/hostname"
+      imagePullSecrets:
+      - name: contrail-nightly
+      containers:
+      - name: kubemgr
+        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
+        imagePullPolicy: Always
+        image: {{ .Values.global.containerRegistry }}/contrail-kubernetes-kube-manager:{{ .Values.global.containerTag }}
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+        envFrom:
+        - configMapRef:
+            name: contrail-cm

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailwebui-svc
   labels:
     app: contrailwebui-svc
@@ -19,7 +19,7 @@ spec:
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailwebui-pdb
 spec:
   selector:
@@ -30,7 +30,7 @@ spec:
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  namespace: contrail
+  namespace: {{ .Values.global.namespace }}
   name: contrailwebui
 spec:
   serviceName: contrailwebui-svc
@@ -63,7 +63,7 @@ spec:
             cpu: "250m"
       - name: web
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-webui-web:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-webui-web:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "2Gi"
@@ -76,7 +76,7 @@ spec:
             name: contrail-cm
       - name: job
         imagePullPolicy: Always
-        image: docker.io/michaelhenkel/contrail-controller-webui-job:5.1-dev1
+        image: {{ .Values.global.containerRegistry }}/contrail-controller-webui-job:{{ .Values.global.containerTag }}
         resources:
           requests:
             memory: "2Gi"

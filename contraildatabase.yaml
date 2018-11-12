@@ -113,7 +113,7 @@ spec:
       containers:
         - name: nodemgr
           imagePullPolicy: Always
-          image: docker.io/michaelhenkel/contrail-nodemgr:queens-5.0.2-dev
+          image: docker.io/michaelhenkel/contrail-nodemgr:5.1-dev1
           resources:
             requests:
               memory: "1Gi"
