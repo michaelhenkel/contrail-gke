@@ -84,6 +84,9 @@ spec:
       labels:
         app: contrailanalytics
     spec:
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

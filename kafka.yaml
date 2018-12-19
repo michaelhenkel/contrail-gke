@@ -27,6 +27,9 @@ spec:
       labels:
         app: kafka
     spec:
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -155,9 +158,6 @@ spec:
           value : "-Xmx512M -Xms512M"
         - name: KAFKA_OPTS
           value: "-Dlogging.level=INFO"
-        volumeMounts:
-        - name: datadir
-          mountPath: /var/lib/kafka
         readinessProbe:
           exec:
            command: 
@@ -167,14 +167,6 @@ spec:
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
-  volumeClaimTemplates:
-  - metadata:
-      name: datadir
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
 ---
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget

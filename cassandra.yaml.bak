@@ -16,6 +16,57 @@ spec:
   selector:
     app: cassandra
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: contrail
+  name: cassandra-data-1
+  labels:
+    type: local
+    app: cassandra
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/data/cassandra-data-1
+  persistentVolumeReclaimPolicy: Delete
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: contrail
+  name: cassandra-data-2
+  labels:
+    type: local
+    app: cassandra
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/data/cassandra-data-2
+  persistentVolumeReclaimPolicy: Delete
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  namespace: contrail
+  name: cassandra-data-3
+  labels:
+    type: local
+    app: cassandra
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/data/cassandra-data-3
+  persistentVolumeReclaimPolicy: Delete
+---
 apiVersion: "apps/v1beta1"
 kind: StatefulSet
 metadata:
@@ -67,3 +118,22 @@ spec:
               value: "true"
             - name: CASSANDRA_ENDPOINT_SNITCH
               value: GossipingPropertyFileSnitch
+          volumeMounts:
+            - name: cassandra-data
+              mountPath: /var/lib/cassandra/data
+      volumes:
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run
+  volumeClaimTemplates:
+    - metadata:
+        name: cassandra-data
+        annotations:  # comment line if you want to use a StorageClass
+          # or specify which StorageClass
+          volume.beta.kubernetes.io/storage-class: ""   # comment line if you
+          # want to use a StorageClass or specify which StorageClass
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi

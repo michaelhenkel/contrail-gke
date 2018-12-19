@@ -40,6 +40,9 @@ spec:
       labels:
         app: contrailconfig
     spec:
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

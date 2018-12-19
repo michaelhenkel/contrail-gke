@@ -6,7 +6,7 @@ metadata:
   name: contrail-cm
 data:
   CASSANDRA_SEEDS: "cassandra-0.cassandra.contrail.svc.cluster.local"
-  #ANALYTICS_NODES: "contrailanalytics-0.contrailanalytics-svc.contrail.svc.cluster.local,contrailanalytics-1.contrailanalytics-svc.contrail.svc.cluster.local,contrailanalytics-2.contrailanalytics-svc.contrail.svc.cluster.local"
+  ANALYTICS_NODES: "contrailanalytics-0.contrailanalytics-svc.contrail.svc.cluster.local,contrailanalytics-1.contrailanalytics-svc.contrail.svc.cluster.local,contrailanalytics-2.contrailanalytics-svc.contrail.svc.cluster.local"
   CONFIG_NODES: "contrailconfig-0.contrailconfig-svc.contrail.svc.cluster.local,contrailconfig-1.contrailconfig-svc.contrail.svc.cluster.local,contrailconfig-2.contrailconfig-svc.contrail.svc.cluster.local"
   CONTROL_NODES: "contrailcontrol-0.contrailcontrol-svc.contrail.svc.cluster.local,contrailcontrol-1.contrailcontrol-svc.contrail.svc.cluster.local,contrailcontrol-2.contrailcontrol-svc.contrail.svc.cluster.local"
   ANALYTICSDB_CQL_PORT: "9042"

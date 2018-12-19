@@ -44,6 +44,9 @@ spec:
       labels:
         app: contrailcontrol
     spec:
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

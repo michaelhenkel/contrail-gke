@@ -7,12 +7,21 @@ metadata:
   labels:
     app: contrailwebui-svc
 spec:
+#  externalTrafficPolicy: Local
+#  type: NodePort
+#  ports:
+#  - port: 8143
+#    nodePort: 31443
+#    name: webui
+spec:
   ports:
   - port: 8143
     targetPort: 8143
     protocol: TCP
     name: webui
-  type: LoadBalancer
+  externalIPs:
+  - 192.168.1.100
+#  type: ClusterIP
   selector:
     app: contrailwebui
 ---
@@ -40,6 +49,11 @@ spec:
       labels:
         app: contrailwebui
     spec:
+#      dnsPolicy: ClusterFirstWithHostNet
+#      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
