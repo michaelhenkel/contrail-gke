@@ -64,6 +64,7 @@ spec:
       labels:
         app: kubemanager
     spec:
+      serviceAccountName: contrail-kubemanager
       nodeSelector:
         node-role.kubernetes.io/master: ''
       tolerations:
