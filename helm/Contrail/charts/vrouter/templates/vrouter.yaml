@@ -18,10 +18,18 @@ spec:
       - operator: Exists
         effect: NoExecute
       hostNetwork: true
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 127.0.0.1
+        options:
+          - name: use-vc
+      imagePullSecrets:
+      - name: contrail-nightly
       initContainers:
       - name: contrail-node-init
         image: "{{ .Values.global.containerRegistry}}/contrail-node-init:{{ .Values.global.containerTag }}"
-        imagePullPolicy: ""
+        imagePullPolicy: "Always"
         securityContext:
           privileged: true
         env:
@@ -35,7 +43,7 @@ spec:
           name: host-usr-bin
       - name: contrail-vrouter-kernel-init
         image: "{{.Values.global.containerRegistry}}/contrail-vrouter-kernel-init:{{.Values.global.containerTag}}"
-        imagePullPolicy: ""
+        imagePullPolicy: "Always"
         securityContext:
           privileged: true
         envFrom:
@@ -52,7 +60,7 @@ spec:
           name: host-bin
       - name: contrail-kubernetes-cni-init
         image: "{{.Values.global.containerRegistry}}/contrail-kubernetes-cni-init:{{.Values.global.containerTag}}"
-        imagePullPolicy: ""
+        imagePullPolicy: "Always"
         envFrom:
         - configMapRef:
             name: contrail-cm
@@ -70,7 +78,7 @@ spec:
       containers:
       - name: contrail-vrouter-agent
         image: "{{.Values.global.containerRegistry}}/contrail-vrouter-agent:{{.Values.global.containerTag}}"
-        imagePullPolicy: ""
+        imagePullPolicy: "Always"
         # TODO: Priveleged mode is requied because w/o it the device /dev/net/tun
         # is not present in the container. The mounting it into container
         # doesnt help because of permissions are not enough syscalls,
@@ -105,7 +113,7 @@ spec:
           name: pod-secret
       - name: contrail-agent-nodemgr
         image: "{{.Values.global.containerRegistry}}/contrail-nodemgr:{{.Values.global.containerTag}}"
-        imagePullPolicy: ""
+        imagePullPolicy: "Always"
         envFrom:
         - configMapRef:
             name: contrail-cm
@@ -139,7 +147,7 @@ spec:
           path: /var/run
       - name: pod-secret
         secret:
-          secretName: contrail-kube-manager-token
+          secretName: contrail-kubemanager-token
       - name: usr-src
         hostPath:
           path: /usr/src

@@ -18,6 +18,10 @@ cd contrail-gke/helm
 kubectl apply -f create-helm-service-account.yaml
 helm init --service-account helm
 ```
+to run Tiller on an untainted master:
+```
+helm init --service-account helm --override spec.template.spec.tolerations[0].operator="Exists" --override spec.template.spec.tolerations[0].effect="NoSchedule" --node-selectors "node-role.kubernetes.io/master"=''
+```
 ### Install Contrail
 ```
 helm install ./Contrail

@@ -84,6 +84,11 @@ spec:
       labels:
         app: contrailanalytics
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ''
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -94,6 +99,8 @@ spec:
                     values: 
                     - contrailanalytics
               topologyKey: "kubernetes.io/hostname"
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       imagePullSecrets:
       - name: contrail-nightly
       containers:

@@ -86,6 +86,11 @@ spec:
       labels:
         app: rabbitmq
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ''
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       serviceAccountName: rabbitmq
       terminationGracePeriodSeconds: 10
       containers:        

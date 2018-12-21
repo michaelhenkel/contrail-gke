@@ -64,6 +64,11 @@ spec:
       labels:
         app: kubemanager
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ''
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -76,6 +81,10 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       imagePullSecrets:
       - name: contrail-nightly
+      volumes:
+      - name: pod-secret
+        secret:
+          secretName: contrail-kubemanager-token
       containers:
       - name: kubemgr
         #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]

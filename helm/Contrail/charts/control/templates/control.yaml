@@ -44,6 +44,11 @@ spec:
       labels:
         app: contrailcontrol
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/master: ''
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -55,6 +60,8 @@ spec:
                     - contrailcontrol
               topologyKey: "kubernetes.io/hostname"
       hostPID: true
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       #privileged: true
       containers:
       - name: nodemgr
