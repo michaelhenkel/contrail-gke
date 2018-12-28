@@ -79,6 +79,8 @@ spec:
           value: "control"
         - name: DOCKER_HOST
           value: "unix://mnt/docker.sock"
+        - name: PROVISION_RETRIES
+          value: "100"
         volumeMounts:
         - mountPath: /mnt
           name: docker-unix-socket
