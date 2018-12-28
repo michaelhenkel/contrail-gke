@@ -1,192 +1,160 @@
 ---
-apiVersion: v1
-kind: Service
+apiVersion: extensions/v1beta1
+kind: DaemonSet
 metadata:
+  name: contrail-analytics
   namespace: {{ .Values.global.namespace }}
-  name: introspection
   labels:
-    app: introspection
+    app: contrail-analytics
 spec:
-  externalTrafficPolicy: Local
-  type: NodePort
-  ports:
-  - port: 8089
-    nodePort: 30003
-    name: collector
-  - port: 8090
-    nodePort: 30002
-    name: api
-  selector:
-    app: contrailanalytics
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: {{ .Values.global.namespace }}
-  name: contrailanalytics-svc
-  labels:
-    app: contrailanalytics-svc
-spec:
-  ports:
-  - port: 8081
-    targetPort: 8081
-    protocol: TCP
-    name: api
-  - port: 8086
-    targetPort: 8086
-    protocol: TCP
-    name: collector
-  - port: 8089
-    targetPort: 8089
-    protocol: TCP
-    name: collector-introspect
-  - port: 8090
-    targetPort: 8090
-    protocol: TCP
-    name: api-introspect
-  - port: 8091
-    targetPort: 8091
-    protocol: TCP
-    name: query-engine
-  - port: 8181
-    targetPort: 8181
-    protocol: TCP
-    name: api-unknown
-  - port: 8104
-    targetPort: 8104
-    protocol: TCP
-    name: nodemgr
-  clusterIP: None
-  selector:
-    app: contrailanalytics
----
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  namespace: {{ .Values.global.namespace }}
-  name: contrailanalytics-pdb
-spec:
-  selector:
-    matchLabels:
-      app: contrailanalytics
-  minAvailable: 2
----
-apiVersion: apps/v1beta1
-kind: StatefulSet
-metadata:
-  namespace: {{ .Values.global.namespace }}
-  name: contrailanalytics
-spec:
-  serviceName: contrailanalytics-svc
-  replicas: {{ .Values.global.nodeCount }}
   template:
     metadata:
       labels:
-        app: contrailanalytics
+        app: contrail-analytics
     spec:
       nodeSelector:
         node-role.kubernetes.io/master: ''
       tolerations:
       - operator: Exists
         effect: NoSchedule
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values: 
-                    - contrailanalytics
-              topologyKey: "kubernetes.io/hostname"
+      - operator: Exists
+        effect: NoExecute
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      imagePullSecrets:
-      - name: contrail-nightly
-      containers:
-      - name: redis
-        imagePullPolicy: Always
-        image: docker.io/redis:4.0.2
-        ports:
-        - containerPort: 6379
-          name: client
-      - name: nodemgr
-        image: {{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}
-        imagePullPolicy: ""
-        ports:
-        - containerPort: 8104
-          name: introspect
+      serviceAccountName: contrail-service-account
+      initContainers:
+      - name: init-myservice
+        image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
+        command: ["/app"]
+      - name: contrail-node-init
+        image: "{{ .Values.global.containerRegistry }}/contrail-node-init:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        securityContext:
+          privileged: true
+        env:
+        - name: CONTRAIL_STATUS_IMAGE
+          value: "{{ .Values.global.containerRegistry }}/contrail-status:{{ .Values.global.containerTag }}"
         envFrom:
         - configMapRef:
-            name: contrail-cm
+            name: contrail-config-map
+        volumeMounts:
+        - mountPath: /host/usr/bin
+          name: host-usr-bin
+      containers:
+      - name: contrail-analytics-api
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-api:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
         env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-collector
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-collector:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-alarm-gen
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-alarm-gen:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-query-engine
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-query-engine:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-snmp-collector
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-snmp-collector:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-topology
+        image: "{{ .Values.global.containerRegistry }}/contrail-analytics-topology:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
+      - name: contrail-analytics-nodemgr
+        image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         - name: NODE_TYPE
-          value: "analytics"
+          value: analytics
         - name: DOCKER_HOST
           value: "unix://mnt/docker.sock"
-        - name: PROVISION_RETRIES
-          value: "100"
         volumeMounts:
+        - mountPath: /var/log/contrail
+          name: analytics-logs
         - mountPath: /mnt
           name: docker-unix-socket
-      - name: api
-        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        imagePullPolicy: Always
-        image: {{ .Values.global.containerRegistry }}/contrail-analytics-api:{{ .Values.global.containerTag }}
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        ports:
-        - containerPort: 8081
-          name: client
-        - containerPort: 8181
-          name: unknown
-        - containerPort: 8090
-          name: introspect
-        envFrom:
-        - configMapRef:
-            name: contrail-cm
-      - name: collector
-        imagePullPolicy: Always
-        image: {{ .Values.global.containerRegistry }}/contrail-analytics-collector:{{ .Values.global.containerTag }}
-        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        ports:
-        - containerPort: 8089
-          name: introspect
-        - containerPort: 8086
-          name: client
-        envFrom:
-        - configMapRef:
-            name: contrail-cm
-      - name: query-engine
-        imagePullPolicy: Always
-        image: {{ .Values.global.containerRegistry }}/contrail-analytics-query-engine:{{ .Values.global.containerTag }}
-        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        command: ["/bin/sh","-c","sleep 20 && /entrypoint.sh /usr/bin/contrail-query-engine --conf_file=/etc/contrail/contrail-query-engine.conf"]
-        ports:
-        - containerPort: 8091
-          name: introspect
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        envFrom:
-        - configMapRef:
-            name: contrail-cm
-      - name: alarm-gen
-        #command: ["/bin/sh","-c", "while true; do echo hello; sleep 10;done"]
-        command: ["/bin/sh","-c","sleep 80 && /entrypoint.sh /usr/bin/contrail-alarm-gen --conf_file=/etc/contrail/contrail-alarm-gen.conf"]
-        imagePullPolicy: Always
-        image: {{ .Values.global.containerRegistry }}/contrail-analytics-alarm-gen:{{ .Values.global.containerTag }}
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        envFrom:
-        - configMapRef:
-            name: contrail-cm
       volumes:
+      - name: analytics-logs
+        hostPath:
+          path: /var/log/contrail/analytics
       - name: docker-unix-socket
         hostPath:
           path: /var/run
