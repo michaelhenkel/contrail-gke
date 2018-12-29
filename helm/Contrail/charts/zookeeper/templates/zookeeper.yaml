@@ -2,15 +2,15 @@
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: config-zookeeper
+  name: zookeeper
   namespace: {{ .Values.global.namespace }}
   labels:
-    app: config-zookeeper
+    app: zookeeper
 spec:
   template:
     metadata:
       labels:
-        app: config-zookeeper
+        app: zookeeper
     spec:
       nodeSelector:
         node-role.kubernetes.io/master: ''
@@ -22,11 +22,12 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-        - name: init-myservice
-          image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
-          command: ["/app"]
+      - name: init-myservice
+        image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
+        command: ["/app"]
+        imagePullPolicy: "Always"
       containers:
-      - name: config-zookeeper
+      - name: zookeeper
         image: "{{ .Values.global.containerRegistry }}/contrail-external-zookeeper:{{ .Values.global.containerTag }}"
         imagePullPolicy: ""
         env:
@@ -49,7 +50,7 @@ spec:
       volumes:
       - name: zookeeper-data
         hostPath:
-          path: /var/lib/contrail/config-zookeeper
+          path: /var/lib/contrail/zookeeper
       - name: zookeeper-logs
         hostPath:
-          path: /var/log/contrail/config-zookeeper
+          path: /var/log/contrail/zookeeper

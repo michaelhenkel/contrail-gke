@@ -25,6 +25,7 @@ spec:
       - name: init-myservice
         image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
         command: ["/app"]
+        imagePullPolicy: "Always"
       - name: contrail-node-init
         envFrom:
         - configMapRef:
@@ -46,7 +47,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       containers:
-      - name: contrail-controller-config-api
+      - name: api
         envFrom:
         - configMapRef:
             name: contrail-config-map
@@ -61,7 +62,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: config-logs
-      - name: contrail-controller-config-devicemgr
+      - name: devicemgr
         envFrom:
         - configMapRef:
             name: contrail-config-map
@@ -76,7 +77,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: config-logs
-      - name: contrail-controller-config-schema
+      - name: schema
         envFrom:
         - configMapRef:
             name: contrail-config-map
@@ -91,13 +92,13 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: config-logs
-      - name: contrail-controller-config-svcmonitor
+      - name: svcmonitor
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-config-svcmonitor:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         volumeMounts:
         - mountPath: /var/log/contrail
           name: config-logs
-      - name: contrail-controller-config-nodemgr
+      - name: nodemgr
         image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:

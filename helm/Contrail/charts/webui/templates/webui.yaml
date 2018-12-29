@@ -37,7 +37,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       containers:
-      - name: contrail-controller-webui-job
+      - name: job
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-webui-job:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -52,7 +52,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: webui-logs
-      - name: contrail-controller-webui-web
+      - name: web
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-webui-web:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:

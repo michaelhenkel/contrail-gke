@@ -40,7 +40,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       containers:
-      - name: contrail-analytics-api
+      - name: api
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-api:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -55,7 +55,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-collector
+      - name: collector
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-collector:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -70,7 +70,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-alarm-gen
+      - name: alarm-gen
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-alarm-gen:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -85,7 +85,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-query-engine
+      - name: query-engine
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-query-engine:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -100,7 +100,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-snmp-collector
+      - name: snmp-collector
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-snmp-collector:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -115,7 +115,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-topology
+      - name: topology
         image: "{{ .Values.global.containerRegistry }}/contrail-analytics-topology:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -130,7 +130,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: analytics-logs
-      - name: contrail-analytics-nodemgr
+      - name: nodemgr
         image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:

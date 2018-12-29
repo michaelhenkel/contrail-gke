@@ -40,7 +40,7 @@ spec:
         - mountPath: /host/usr/bin
           name: host-usr-bin
       containers:
-      - name: contrail-controller-control
+      - name: control
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-control-control:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -55,7 +55,7 @@ spec:
         volumeMounts:
         - mountPath: /var/log/contrail
           name: control-logs
-      - name: contrail-controller-control-dns
+      - name: dns
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-control-dns:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -72,7 +72,7 @@ spec:
           name: dns-config
         - mountPath: /var/log/contrail
           name: control-logs
-      - name: contrail-controller-control-named
+      - name: named
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-control-named:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:
@@ -91,7 +91,7 @@ spec:
           name: dns-config
         - mountPath: /var/log/contrail
           name: control-logs
-      - name: contrail-controller-nodemgr
+      - name: nodemgr
         image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         envFrom:

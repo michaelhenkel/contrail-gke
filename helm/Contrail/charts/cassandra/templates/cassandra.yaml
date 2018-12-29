@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: contrail-configdb-config
+  name: cassandra-config
   namespace: {{ .Values.global.namespace }}
 data:
   CASSANDRA_CLUSTER_NAME: ContrailConfigDB
@@ -17,15 +17,15 @@ data:
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: contrail-configdb
+  name: cassandra
   namespace: {{ .Values.global.namespace }}
   labels:
-    app: contrail-configdb
+    app: cassandra
 spec:
   template:
     metadata:
       labels:
-        app: contrail-configdb
+        app: cassandra
     spec:
       nodeSelector:
         node-role.kubernetes.io/master: ''
@@ -37,11 +37,35 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-        - name: init-myservice
-          image: docker.io/michaelhenkel/contrail-init:latest
-          command: ["/app"]
+      - name: init-myservice
+        image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
+        command: ["/app"]
+        imagePullPolicy: "Always"
       containers:
-      - name: contrail-configdb
+      - name: nodemgr
+        image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
+        imagePullPolicy: "Always"
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: NODE_TYPE
+          value: database
+        - name: DATABASE_NODEMGR__DEFAULTS__minimum_diskGB
+          value: "2"
+        - name: DOCKER_HOST
+          value: "unix://mnt/docker.sock"
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /var/log/contrail
+          name: configdb-logs
+        - mountPath: /mnt
+          name: docker-unix-socket
+      - name: cassandra
         image: "{{ .Values.global.containerRegistry }}/contrail-external-cassandra:{{ .Values.global.containerTag }}"
         imagePullPolicy: ""
         env:
@@ -54,7 +78,7 @@ spec:
               key: CONTROLLER_NODES
         envFrom:
         - configMapRef:
-            name: contrail-configdb-config
+            name: cassandra-config
         volumeMounts:
         - mountPath: /var/lib/cassandra
           name: configdb-data
@@ -67,3 +91,9 @@ spec:
       - name: configdb-logs
         hostPath:
           path: /var/log/contrail/configdb
+      - name: docker-unix-socket
+        hostPath:
+          path: /var/run
+      - name: host-usr-bin
+        hostPath:
+          path: /usr/bin

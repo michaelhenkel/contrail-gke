@@ -1,8 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nodemgr-config
-  namespace: {{ .Values.global.namespace }}
-data:
-  DOCKER_HOST: "unix://mnt/docker.sock"

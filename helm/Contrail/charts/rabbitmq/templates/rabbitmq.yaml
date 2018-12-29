@@ -30,9 +30,10 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-        - name: init-myservice
-          image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
-          command: ["/app"]
+      - name: init-myservice
+        image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
+        command: ["/app"]
+        imagePullPolicy: "Always"
       containers:
       - name: rabbitmq
         image: "{{ .Values.global.containerRegistry }}/contrail-external-rabbitmq:{{ .Values.global.containerTag }}"
