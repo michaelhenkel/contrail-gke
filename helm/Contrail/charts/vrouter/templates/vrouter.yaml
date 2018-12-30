@@ -10,23 +10,27 @@ spec:
       labels:
         app: contrailvrouter
     spec:
-      nodeSelector:
-        node-role.opencontrail.org: vrouter
       tolerations:
       - operator: Exists
         effect: NoSchedule
       - operator: Exists
         effect: NoExecute
       hostNetwork: true
-      dnsPolicy: "None"
-      dnsConfig:
-        nameservers:
-          - 127.0.0.1
-        options:
-          - name: use-vc
-      imagePullSecrets:
-      - name: contrail-nightly
+      serviceAccountName: contrail-service-account
       initContainers:
+      - name: init-myservice
+        image: {{ .Values.global.containerRegistry }}/contrail-init:{{ .Values.global.containerTag }}
+        command: ["/app"]
+        imagePullPolicy: "Always"
+      - name: wait-for-api
+        image: busybox
+        command: ["sh","-c","for cn in `echo $CONTROLLER_NODES | tr ',' '\n'`; do until nc $cn 8082 -w 1 > /dev/null 2>&1; do sleep 1;echo waiting for $cn ;done;echo $cn is alive; done"]
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
       - name: contrail-node-init
         image: "{{ .Values.global.containerRegistry}}/contrail-node-init:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
@@ -37,7 +41,7 @@ spec:
           value: "{{.Values.global.containerRegistry}}/contrail-status:{{.Values.global.containerTag}}"
         envFrom:
         - configMapRef:
-            name: contrail-cm
+            name: contrail-config-map
         volumeMounts:
         - mountPath: /host/usr/bin
           name: host-usr-bin
@@ -48,7 +52,18 @@ spec:
           privileged: true
         envFrom:
         - configMapRef:
-            name: contrail-cm
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        - name: CONTROL_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         volumeMounts:
         - mountPath: /usr/src
           name: usr-src
@@ -63,7 +78,13 @@ spec:
         imagePullPolicy: "Always"
         envFrom:
         - configMapRef:
-            name: contrail-cm
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         volumeMounts:
         - mountPath: /var/lib/contrail
           name: var-lib-contrail
@@ -79,15 +100,17 @@ spec:
       - name: contrail-vrouter-agent
         image: "{{.Values.global.containerRegistry}}/contrail-vrouter-agent:{{.Values.global.containerTag}}"
         imagePullPolicy: "Always"
-        # TODO: Priveleged mode is requied because w/o it the device /dev/net/tun
-        # is not present in the container. The mounting it into container
-        # doesnt help because of permissions are not enough syscalls,
-        # e.g. https://github.com/Juniper/contrail-controller/blob/master/src/vnsw/agent/contrail/linux/pkt0_interface.cc: 48.
         securityContext:
           privileged: true
         envFrom:
         - configMapRef:
-            name: contrail-cm
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         lifecycle:
           preStop:
             exec:
@@ -111,22 +134,22 @@ spec:
           name: var-crashes
         - mountPath: /tmp/serviceaccount
           name: pod-secret
-      - name: contrail-agent-nodemgr
+      - name: nodemgr
         image: "{{.Values.global.containerRegistry}}/contrail-nodemgr:{{.Values.global.containerTag}}"
         imagePullPolicy: "Always"
         envFrom:
         - configMapRef:
-            name: contrail-cm
-        - configMapRef:
-            name: nodemgr-config
+            name: contrail-config-map
         env:
+        - name: DOCKER_HOST
+          value: "unix://mnt/docker.sock"
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         - name: NODE_TYPE
           value: vrouter
-# todo: there is type Socket in new kubernetes, it is possible to use full
-# path:
-# hostPath:
-#   path: /var/run/docker.sock and
-#   type: Socket
         volumeMounts:
         - mountPath: /var/log/contrail
           name: agent-logs
@@ -147,7 +170,7 @@ spec:
           path: /var/run
       - name: pod-secret
         secret:
-          secretName: contrail-kubemanager-token
+          secretName: contrail-kube-manager-token
       - name: usr-src
         hostPath:
           path: /usr/src

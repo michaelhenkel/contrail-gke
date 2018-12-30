@@ -42,29 +42,29 @@ spec:
         command: ["/app"]
         imagePullPolicy: "Always"
       containers:
-      - name: nodemgr
-        image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
-        imagePullPolicy: "Always"
-        envFrom:
-        - configMapRef:
-            name: contrail-config-map
-        env:
-        - name: NODE_TYPE
-          value: database
-        - name: DATABASE_NODEMGR__DEFAULTS__minimum_diskGB
-          value: "2"
-        - name: DOCKER_HOST
-          value: "unix://mnt/docker.sock"
-        - name: CONTROLLER_NODES
-          valueFrom:
-            configMapKeyRef:
-              name: contrailcontrollernodes
-              key: CONTROLLER_NODES
-        volumeMounts:
-        - mountPath: /var/log/contrail
-          name: configdb-logs
-        - mountPath: /mnt
-          name: docker-unix-socket
+#      - name: nodemgr
+#        image: "{{ .Values.global.containerRegistry }}/contrail-nodemgr:{{ .Values.global.containerTag }}"
+#        imagePullPolicy: "Always"
+#        envFrom:
+#        - configMapRef:
+#            name: contrail-config-map
+#        env:
+#        - name: NODE_TYPE
+#          value: database
+#        - name: DATABASE_NODEMGR__DEFAULTS__minimum_diskGB
+#          value: "2"
+#        - name: DOCKER_HOST
+#          value: "unix://mnt/docker.sock"
+#        - name: CONTROLLER_NODES
+#          valueFrom:
+#            configMapKeyRef:
+#              name: contrailcontrollernodes
+#              key: CONTROLLER_NODES
+#        volumeMounts:
+#        - mountPath: /var/log/contrail
+#          name: configdb-logs
+#        - mountPath: /mnt
+#          name: docker-unix-socket
       - name: cassandra
         image: "{{ .Values.global.containerRegistry }}/contrail-external-cassandra:{{ .Values.global.containerTag }}"
         imagePullPolicy: ""

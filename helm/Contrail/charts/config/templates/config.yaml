@@ -36,13 +36,12 @@ spec:
             configMapKeyRef:
               name: contrailcontrollernodes
               key: CONTROLLER_NODES
+        - name: CONTRAIL_STATUS_IMAGE
+          value: "{{ .Values.global.containerRegistry }}/contrail-status:{{ .Values.global.containerTag }}"
         image: "{{ .Values.global.containerRegistry }}/contrail-node-init:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         securityContext:
           privileged: true
-        env:
-        - name: CONTRAIL_STATUS_IMAGE
-          value: "{{ .Values.global.containerRegistry }}/contrail-status:{{ .Values.global.containerTag }}"
         volumeMounts:
         - mountPath: /host/usr/bin
           name: host-usr-bin
@@ -93,6 +92,15 @@ spec:
         - mountPath: /var/log/contrail
           name: config-logs
       - name: svcmonitor
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
         image: "{{ .Values.global.containerRegistry }}/contrail-controller-config-svcmonitor:{{ .Values.global.containerTag }}"
         imagePullPolicy: "Always"
         volumeMounts:
