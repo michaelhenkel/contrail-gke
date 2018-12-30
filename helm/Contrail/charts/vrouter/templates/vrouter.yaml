@@ -73,6 +73,34 @@ spec:
           name: network-scripts
         - mountPath: /host/bin
           name: host-bin
+      - name: contrail-vrouter-nic-init
+        image: "{{.Values.global.containerRegistry}}/contrail-vrouter-nic-init:{{.Values.global.containerTag}}"
+        imagePullPolicy: "Always"
+        securityContext:
+          privileged: true
+        envFrom:
+        - configMapRef:
+            name: contrail-config-map
+        env:
+        - name: CONTROLLER_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        - name: CONTROL_NODES
+          valueFrom:
+            configMapKeyRef:
+              name: contrailcontrollernodes
+              key: CONTROLLER_NODES
+        volumeMounts:
+        - mountPath: /usr/src
+          name: usr-src
+        - mountPath: /lib/modules
+          name: lib-modules
+        - mountPath: /etc/sysconfig/network-scripts
+          name: network-scripts
+        - mountPath: /host/bin
+          name: host-bin
       - name: contrail-kubernetes-cni-init
         image: "{{.Values.global.containerRegistry}}/contrail-kubernetes-cni-init:{{.Values.global.containerTag}}"
         imagePullPolicy: "Always"
