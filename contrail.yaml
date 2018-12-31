@@ -8,6 +8,32 @@ spec:
   finalizers:
   - kubernetes
 ---
+# Source: Contrail/templates/contrail-config-map.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contrail-config-map
+  namespace: contrail
+data:
+  RABBITMQ_NODE_PORT: "5673"
+  CONFIGDB_PORT: "9160"
+  CONFIGDB_CQL_PORT: "9042"
+  CASSANDRA_CQL_PORT: "9042"
+  CASSANDRA_JMX_LOCAL_PORT: "7199"
+  CONFIG_NODEMGR__DEFAULTS__minimum_diskGB: "2"
+  ANALYTICSDB_PORT: "9160"
+  ANALYTICSDB_CQL_PORT: "9042"
+  ZOOKEEPER_ANALYTICS_PORT: "2181"
+  CLOUD_ORCHESTRATOR: "kubernetes"
+  CONTRAIL_CONTAINER_REGISTRY: docker.io/michaelhenkel
+  CONTRAIL_CONTAINER_TAG: 5.1-dev4
+  KUBERNETES_IP_FABRIC_FORWARDING: "true"
+  KUBERNETES_IP_FABRIC_SNAT: "true"
+  KUBERNETES_CLUSTER_NAME: "kubernetes"
+  KUBERNETES_POD_SUBNETS: "10.32.0.0/12"
+  KUBERNETES_SERVICE_SUBNETS: "10.96.0.0/12"
+---
 # Source: Contrail/templates/contrail-rbac.yaml
 ---
 kind: ClusterRole
@@ -39,27 +65,6 @@ subjects:
 - kind: ServiceAccount
   name: contrail-service-account
   namespace: contrail
----
-# Source: Contrail/templates/contrail-config-map.yaml
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: contrail-config-map
-  namespace: contrail
-data:
-  RABBITMQ_NODE_PORT: "5673"
-  CONFIGDB_PORT: "9160"
-  CONFIGDB_CQL_PORT: "9042"
-  CASSANDRA_CQL_PORT: "9042"
-  CASSANDRA_JMX_LOCAL_PORT: "7199"
-  CONFIG_NODEMGR__DEFAULTS__minimum_diskGB: "2"
-  ANALYTICSDB_PORT: "9160"
-  ANALYTICSDB_CQL_PORT: "9042"
-  ZOOKEEPER_ANALYTICS_PORT: "2181"
-  CLOUD_ORCHESTRATOR: "kubernetes"
-  CONTRAIL_CONTAINER_REGISTRY: docker.io/michaelhenkel
-  CONTRAIL_CONTAINER_TAG: 5.1-dev4
 ---
 # Source: Contrail/charts/cassandra/templates/cassandra.yaml
 ---
