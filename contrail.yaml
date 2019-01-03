@@ -27,12 +27,12 @@ data:
   ZOOKEEPER_ANALYTICS_PORT: "2181"
   CLOUD_ORCHESTRATOR: "kubernetes"
   CONTRAIL_CONTAINER_REGISTRY: docker.io/michaelhenkel
-  CONTRAIL_CONTAINER_TAG: 5.1-dev4
+  CONTRAIL_CONTAINER_TAG: 5.1-dev5
   KUBERNETES_IP_FABRIC_FORWARDING: "true"
   KUBERNETES_IP_FABRIC_SNAT: "true"
-  KUBERNETES_CLUSTER_NAME: "kubernetes"
-  KUBERNETES_POD_SUBNETS: "10.32.0.0/12"
-  KUBERNETES_SERVICE_SUBNETS: "10.96.0.0/12"
+  #KUBERNETES_CLUSTER_NAME: "kubernetes"
+  #KUBERNETES_POD_SUBNETS: "10.32.0.0/12"
+  #KUBERNETES_SERVICE_SUBNETS: "10.96.0.0/12"
 ---
 # Source: Contrail/templates/contrail-rbac.yaml
 ---
@@ -106,9 +106,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       containers:
 #      - name: nodemgr
@@ -200,9 +200,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       containers:
       - name: rabbitmq
@@ -259,9 +259,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       containers:
       - name: zookeeper
@@ -317,9 +317,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       containers:
       - name: redis
@@ -372,9 +372,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       containers:
       - name: kafka
@@ -416,9 +416,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       - name: contrail-node-init
         envFrom:
@@ -557,9 +557,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       - name: wait-for-api
         image: busybox
@@ -732,9 +732,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       - name: wait-for-api
         image: busybox
@@ -870,9 +870,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
       - name: contrail-node-init
         image: "docker.io/michaelhenkel/contrail-node-init:5.1-dev4"
         imagePullPolicy: "Always"
@@ -965,9 +965,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       - name: wait-for-api
         image: busybox
@@ -1048,6 +1048,15 @@ spec:
       labels:
         app: contrailvrouter
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "node-role.kubernetes.io/master"
+                operator: NotIn
+                values:
+                - ""
       tolerations:
       - operator: Exists
         effect: NoSchedule
@@ -1056,9 +1065,9 @@ spec:
       hostNetwork: true
       serviceAccountName: contrail-service-account
       initContainers:
-      - name: init-myservice
-        image: docker.io/michaelhenkel/contrail-init:5.1-dev4
-        command: ["/app"]
+      - name: contrail-k8s-init
+        image: docker.io/michaelhenkel/contrail-k8s-init-container:5.1-dev4
+        command: ["/contrail-k8s-init"]
         imagePullPolicy: "Always"
       - name: wait-for-api
         image: busybox
